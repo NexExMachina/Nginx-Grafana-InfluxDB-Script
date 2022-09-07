@@ -45,7 +45,7 @@ DomainNames() {
     read -p 'InfluxDB Domain (eg. influx.example.com): ' influxdomain
     echo $grafanadomain
     echo $influxdomain
-    NginxBuild
+    SSL
 }
 
 #Obtain Let's Encrypt Certificate
