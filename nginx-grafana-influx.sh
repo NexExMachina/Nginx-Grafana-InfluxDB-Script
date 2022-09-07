@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Nginx, Grafana, and InfluxDB Installer Script (v.1.0.0) by lilciv#2944
+# Nginx, Grafana, and InfluxDB Installer Script (v.1.1.0) by lilciv#2944
 # Built using Docker and Docker Compose.
 
 #Root user check
@@ -23,7 +23,6 @@ $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev
     sudo apt update
     sudo apt install docker-ce docker-ce-cli containerd.io -y
     sudo apt install docker-compose-plugin -y
-    sudo apt install certbot -y
     DBCreds
 }
 
@@ -43,11 +42,23 @@ DomainNames() {
     echo
     read -p 'Grafana Domain (eg. grafana.example.com): ' grafanadomain
     read -p 'InfluxDB Domain (eg. influx.example.com): ' influxdomain
-    SSL
+    SSLChoice
 }
 
 #Obtain Let's Encrypt Certificate
+SSLChoice() {
+    echo
+    read -n1 -p "Use SSL? [y,n]" choice 
+    case $choice in  
+      y|Y) SSL ;; 
+      n|N) NginxBuildNoSSL ;; 
+      *) exit ;; 
+    esac
+}
+
 SSL() {
+    clear
+    sudo apt install certbot -y
     certbot certonly --manual --preferred-challenges dns -d ${grafanadomain} -d ${influxdomain} --agree-tos
     sudo crontab -l | { cat; echo "0 23 * * * certbot renew --quiet --deploy-hook 'docker restart Nginx'"; } | sudo crontab -
     NginxBuild
@@ -184,6 +195,106 @@ EOF
     InfluxDB
 }
 
+#Build Nginx (No SSL)
+NginxBuildNoSSL() {
+    mkdir -p Docker/Volumes/Nginx/etc/nginx/conf.d
+    mkdir -p Docker/Volumes/Nginx/etc/nginx/includes
+    mkdir -p Docker/Volumes/Nginx/var/www/html
+    mkdir -p Docker/Volumes/Nginx/var/logs
+    cat > Docker/Volumes/Nginx/var/www/html/notfound.html << EOF
+<html>
+<head><title>404</title></head>
+<body>
+<h2>Page Not Found</h2>
+</body>
+</html>
+EOF
+    cat > Docker/Volumes/Nginx/etc/nginx/conf.d/default.conf << EOF
+server_tokens off;
+
+server {
+    listen 80;
+    server_name $grafanadomain;
+
+    location / {
+    include /etc/nginx/includes/proxy.conf;
+    proxy_pass http://Grafana:3000;
+    }
+
+    access_log /var/log/nginx/grafana.access.log;
+    error_log /var/log/nginx/error.log error;
+}
+
+server {
+    listen 80;
+    server_name $influxdomain;
+
+    location / {
+        include /etc/nginx/includes/proxy.conf;
+        proxy_pass https://InfluxDB:8086;
+    }
+
+    access_log off;
+    error_log /var/log/nginx/error.log error;
+}
+
+server {
+    listen 80 default_server;
+    server_name _;
+    root /var/www/html;
+    
+    charset UTF-8;
+    
+    error_page 404 /notfound.html;
+    location = /notfound.html {
+        allow all;
+    }
+    location / {
+        return 404;
+    }
+
+    log_not_found off;
+    error_log /var/log/nginx/error.log error;
+}
+
+EOF
+    cat > Docker/Volumes/Nginx/etc/nginx/includes/proxy.conf << EOF
+proxy_set_header Host \$host;
+proxy_set_header X-Real-IP \$remote_addr;
+proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+proxy_set_header X-Forwarded-Proto \$scheme;
+proxy_buffering off;
+proxy_request_buffering off;
+proxy_http_version 1.1;
+proxy_intercept_errors on;
+EOF
+    NginxDeployNoSSL
+}
+
+#Deploy Nginx (No SSL)
+NginxDeployNoSSL() {
+    cat > docker-compose.yml << EOF
+version: '3.8'
+services:
+  nginx:
+    image: nginx:1.22.0-alpine
+    container_name: Nginx
+    ports:
+      - 80:80
+    volumes:
+      - ./Docker/Volumes/Nginx/var/log/nginx:/var/log/nginx
+      - ./Docker/Volumes/Nginx/etc/nginx/conf.d:/etc/nginx/conf.d
+      - ./Docker/Volumes/Nginx/etc/nginx/includes:/etc/nginx/includes
+      - ./Docker/Volumes/Nginx/var/www/html:/var/www/html
+networks:
+  default:
+    name: web
+EOF
+    docker compose up -d
+    rm docker-compose.yml
+    InfluxDB
+}
+
 #Deploy InfluxDB
 InfluxDB() {
     docker run -d --network web --name InfluxDB --restart unless-stopped -v "$(pwd)"/Docker/Volumes/InfluxDB/etc/ssl:/etc/ssl -v "$(pwd)"/Docker/Volumes/InfluxDB/influxdb:/var/lib/influxdb -e INFLUXDB_DB=db01 -e INFLUXDB_HTTP_AUTH_ENABLED=true -e INFLUXDB_USER=$dbuser -e INFLUXDB_USER_PASSWORD=$dbpass -e INFLUXDB_ADMIN_USER=influxadmin -e INFLUXDB_ADMIN_PASSWORD=$dbadminpass -e INFLUXDB_HTTP_HTTPS_ENABLED=true -e INFLUXDB_HTTP_HTTPS_CERTIFICATE="/etc/ssl/fullchain.pem" -e INFLUXDB_HTTP_HTTPS_PRIVATE_KEY="/etc/ssl/privkey.pem" -e INFLUXDB_DATA_MAX_SERIES_PER_DATABASE=0 influxdb:1.8
@@ -214,8 +325,8 @@ Finish() {
     echo
     echo Your InfluxDB database name is db01
     echo
-    echo Your Grafana dashboard is located at https://$grafanadomain
-    echo Your InfluxDB instance is located at https://$influxdomain
+    echo Your Grafana dashboard is located at http://$grafanadomain
+    echo Your InfluxDB instance is located at http://$influxdomain
     echo
 }
 
