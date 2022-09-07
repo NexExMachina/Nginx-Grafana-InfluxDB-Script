@@ -1,7 +1,7 @@
 # Nginx, Grafana, and InfluxDB Installer Script
 
-This script will install Docker, Docker Compose, and create containers for Nginx, Grafana, and InfluxDB. Nginx will act as a reverse proxy for Grafana and InfluxDB.
-This script is originally created for the Rust Server community in order to simplify the setup of Rust Server Metrics:
+This script will install Docker, Docker Compose, and create containers for Nginx, Grafana, and InfluxDB. Nginx will act as a reverse proxy for Grafana and InfluxDB and handle the SSL certificate for them.
+This script was originally created for the Rust Server community in order to simplify the setup of Rust Server Metrics:
 https://github.com/Pinkstink-Rust/Rust-Server-Metrics
 
 Yes, I know this is only one way of configuring these things, not the only way. This setup script was made with security in mind, as opposed to exposing an insecure Grafana and InfluxDB instance over the internet.
