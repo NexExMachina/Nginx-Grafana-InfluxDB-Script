@@ -43,8 +43,6 @@ DomainNames() {
     echo
     read -p 'Grafana Domain (eg. grafana.example.com): ' grafanadomain
     read -p 'InfluxDB Domain (eg. influx.example.com): ' influxdomain
-    echo $grafanadomain
-    echo $influxdomain
     SSL
 }
 
