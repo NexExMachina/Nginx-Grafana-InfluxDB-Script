@@ -325,8 +325,8 @@ Finish() {
     echo
     echo Your InfluxDB database name is db01
     echo
-    echo Your Grafana dashboard is located at http(s)://$grafanadomain
-    echo Your InfluxDB instance is located at http(s)://$influxdomain
+    echo Your Grafana dashboard is located at http://$grafanadomain
+    echo Your InfluxDB instance is located at http://$influxdomain
     echo
 }
 
