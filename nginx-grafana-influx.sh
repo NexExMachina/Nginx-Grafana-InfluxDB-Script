@@ -59,8 +59,17 @@ SSLChoice() {
 SSL() {
     clear
     sudo apt install certbot -y
+    clear
+    echo Check if your TXT records are active before pressing enter on Certbot! Check here: https://mxtoolbox.com/txtlookup.aspx
+    echo
     certbot certonly --manual --preferred-challenges dns -d ${grafanadomain} -d ${influxdomain} --agree-tos
     sudo crontab -l | { cat; echo "0 23 * * * certbot renew --quiet --deploy-hook 'docker restart Nginx'"; } | sudo crontab -
+    read -n1 -p "Did your certificate apply correctly? [y,n]" correct 
+    case $correct in  
+      y|Y) NginxBuild ;; 
+      n|N) SSL ;; 
+      *) exit ;; 
+    esac
     NginxBuild
 }
 
@@ -71,12 +80,7 @@ NginxBuild() {
     mkdir -p Docker/Volumes/Nginx/var/www/html
     mkdir -p Docker/Volumes/Nginx/var/logs
     cat > Docker/Volumes/Nginx/var/www/html/notfound.html << EOF
-<html>
-<head><title>404</title></head>
-<body>
-<h2>Page Not Found</h2>
-</body>
-</html>
+<meta http-equiv="refresh" content="0; URL='https://$grafanadomain'" />
 EOF
     cat > Docker/Volumes/Nginx/etc/nginx/conf.d/default.conf << EOF
 server_tokens off;
@@ -202,12 +206,7 @@ NginxBuildNoSSL() {
     mkdir -p Docker/Volumes/Nginx/var/www/html
     mkdir -p Docker/Volumes/Nginx/var/logs
     cat > Docker/Volumes/Nginx/var/www/html/notfound.html << EOF
-<html>
-<head><title>404</title></head>
-<body>
-<h2>Page Not Found</h2>
-</body>
-</html>
+<meta http-equiv="refresh" content="0; URL='http://$grafanadomain'" />
 EOF
     cat > Docker/Volumes/Nginx/etc/nginx/conf.d/default.conf << EOF
 server_tokens off;
