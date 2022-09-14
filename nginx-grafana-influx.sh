@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Nginx, Grafana, and InfluxDB Installer Script (v.1.1.0) by lilciv#2944
+# Nginx, Grafana, and InfluxDB Installer Script (v.1.2.1) by lilciv#2944
 # Built using Docker and Docker Compose.
 
 #Root user check
@@ -13,7 +13,7 @@ RootCheck() {
     fi
 }
 
-#Install Docker, Docker Compose, and Certbot
+#Install Docker & Docker Compose
 Dependencies() {
     sudo apt install ca-certificates curl gnupg lsb-release -y
     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
