@@ -155,8 +155,8 @@ server {
     listen 443 ssl http2 default_server;
     server_name _;
 	
-    ssl_certificate /etc/letsencrypt/live/grafana.rustserver.org/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/grafana.rustserver.org/privkey.pem;
+    ssl_certificate /etc/letsencrypt/live/$grafanadomain/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/$grafanadomain/privkey.pem;
 	
     root /var/www/html;
     
