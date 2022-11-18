@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Nginx, Grafana, and InfluxDB Installer Script Remover (v1.0.0) by lilciv#2944
+# Nginx, Grafana, and InfluxDB Installer Script Remover (v2.0.0) by lilciv#2944
 
 #Root user check
 RootCheck() {
@@ -25,9 +25,11 @@ DeleteContainers() {
     docker stop Grafana
     docker stop InfluxDB
     docker stop Nginx
+    docker stop acme.sh
     docker rm Grafana
     docker rm InfluxDB
     docker rm Nginx
+    docker rm acme.sh
     Data
 }
 
