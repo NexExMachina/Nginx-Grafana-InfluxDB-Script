@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Nginx, Grafana, and InfluxDB Installer Script (v.1.3.0) by lilciv#2944
+# Nginx, Grafana, and InfluxDB Installer Script (v.2.0.0) by lilciv#2944
 # Built using Docker and Docker Compose.
 
 #Root user check
@@ -45,7 +45,7 @@ DomainNames() {
     SSLChoice
 }
 
-#Obtain Let's Encrypt Certificate
+#Determine HTTP or HTTPS
 SSLChoice() {
     echo
     read -n1 -p "Use SSL? [y,n]" choice 
@@ -56,24 +56,30 @@ SSLChoice() {
     esac
 }
 
+#Deploy acme.sh and obtain Let's Encrypt certificate
 SSL() {
     clear
-    sudo apt install certbot -y
-    clear
-    echo Check if your TXT records are active before pressing enter on Certbot! Check here: https://mxtoolbox.com/txtlookup.aspx
+    docker stop acme.sh && docker rm acme.sh
+    docker run -d --restart unless-stopped \
+      -v "$(pwd)"/Docker/Volumes/acme.sh:/acme.sh \
+      --net=host \
+      --restart unless-stopped \
+      --name=acme.sh \
+      neilpang/acme.sh daemon
+    docker exec acme.sh --set-default-ca --server letsencrypt
+    docker exec acme.sh --issue -d $grafanadomain -d $influxdomain --standalone
+    sudo crontab -l | { cat; echo "23 0 * * * docker restart Nginx"; } | sudo crontab -
     echo
-    certbot certonly --manual --preferred-challenges dns -d ${grafanadomain} -d ${influxdomain} --agree-tos
-    sudo crontab -l | { cat; echo "0 23 * * * certbot renew --quiet --deploy-hook 'docker restart Nginx'"; } | sudo crontab -
-    read -n1 -p "Did your certificate apply correctly? [y,n]" correct 
+    echo
+    read -n1 -p "Did your certificate obtain correctly? [y,n]" correct
     case $correct in  
       y|Y) NginxBuild ;; 
       n|N) SSL ;; 
       *) exit ;; 
     esac
-    NginxBuild
 }
 
-#Build Nginx Configuration
+#Build Nginx
 NginxBuild() {
     mkdir -p Docker/Volumes/Nginx/etc/nginx/conf.d
     mkdir -p Docker/Volumes/Nginx/etc/nginx/includes
@@ -95,8 +101,8 @@ server {
     listen 443 ssl http2;
     server_name $grafanadomain;
 
-    ssl_certificate /etc/letsencrypt/live/$grafanadomain/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/$grafanadomain/privkey.pem;
+    ssl_certificate /etc/acme.sh/$grafanadomain/fullchain.cer;
+    ssl_certificate_key /etc/acme.sh/$grafanadomain/$grafanadomain.key;
     include /etc/nginx/includes/ssl.conf;
 
     location / {
@@ -118,8 +124,8 @@ server {
     listen 443 ssl http2;
     server_name $influxdomain;
 
-    ssl_certificate /etc/letsencrypt/live/$grafanadomain/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/$grafanadomain/privkey.pem;
+    ssl_certificate /etc/acme.sh/$grafanadomain/fullchain.cer;
+    ssl_certificate_key /etc/acme.sh/$grafanadomain/$grafanadomain.key;
     include /etc/nginx/includes/ssl.conf;
     
 
@@ -155,8 +161,8 @@ server {
     listen 443 ssl http2 default_server;
     server_name _;
 	
-    ssl_certificate /etc/letsencrypt/live/$grafanadomain/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/$grafanadomain/privkey.pem;
+    ssl_certificate /etc/acme.sh/$grafanadomain/$grafanadomain.cer;
+    ssl_certificate_key /etc/acme.sh/$grafanadomain/$grafanadomain.key;
 	
     root /var/www/html;
     
@@ -208,11 +214,12 @@ services:
       - 80:80
       - 443:443
     volumes:
-      - /etc/letsencrypt:/etc/letsencrypt
+      - ./Docker/Volumes/acme.sh:/etc/acme.sh
       - ./Docker/Volumes/Nginx/var/log/nginx:/var/log/nginx
       - ./Docker/Volumes/Nginx/etc/nginx/conf.d:/etc/nginx/conf.d
       - ./Docker/Volumes/Nginx/etc/nginx/includes:/etc/nginx/includes
       - ./Docker/Volumes/Nginx/var/www/html:/var/www/html
+    restart: unless-stopped
 networks:
   default:
     name: web
@@ -308,6 +315,7 @@ services:
       - ./Docker/Volumes/Nginx/etc/nginx/conf.d:/etc/nginx/conf.d
       - ./Docker/Volumes/Nginx/etc/nginx/includes:/etc/nginx/includes
       - ./Docker/Volumes/Nginx/var/www/html:/var/www/html
+    restart: unless-stopped
 networks:
   default:
     name: web
@@ -325,7 +333,7 @@ InfluxDB() {
 
 #Deploy Grafana
 Grafana() {
-    docker run -d --user 0 --restart unless-stopped --network web --name Grafana -v "$(pwd)"/Docker/Volumes/Grafana:/var/lib/grafana grafana/grafana:9.0.6
+    docker run -d --user 0 --restart unless-stopped --network web --name Grafana -v "$(pwd)"/Docker/Volumes/Grafana:/var/lib/grafana grafana/grafana:9.0.7
     SelfSignedCert
 }
 
