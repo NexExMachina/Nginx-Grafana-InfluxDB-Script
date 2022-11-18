@@ -8,7 +8,7 @@ https://github.com/Pinkstink-Rust/Rust-Server-Metrics
 # Prerequisites
 - Linux VPS - I recommend **Hetzner**. They are cheap and reliable. Ubuntu Server 20.04 or 22.04 is the **required** OS. Other OS choices will not work.
 - If you plan on running this DB with more than one Rust server, I recommend increasing the server storage, as you may run out.
-- Domain Name with two DNS Records - one for Grafana (eg. grafana.example.com) and one for InfluxDB (eg. influx.example.com) - These two records should point to your VPS public IPv4 address. Cloudflare proxying is also fine for this. **You will need to create two more TXT records for verification during the install if you use SSL!**
+- Domain Name with two DNS Records - one for Grafana (eg. grafana.example.com) and one for InfluxDB (eg. influx.example.com) - These two records should point to your VPS public IPv4 address. Cloudflare proxying is also fine for this.
 - Firewall rules (if applicable) allowing inbound access to TCP ports **80 and 443 (if you use SSL)**
 - Basic knowledge of Linux (How to SSH)
 
@@ -17,7 +17,6 @@ https://github.com/Pinkstink-Rust/Rust-Server-Metrics
 - ```bash <(curl -s https://raw.githubusercontent.com/lilciv/Nginx-Grafana-InfluxDB-Script/main/nginx-grafana-influx.sh)```
 2. Enter a **secure** InfluxDB username and password.
 3. Enter your Grafana domain as well as your InfluxDB Domain (eg. grafana.example.com and influx.example.com)
-4. If you chose to use SSL, create the required DNS TXT records to verify domain ownership with Let's Encrypt.
 4. If you chose to use SSL, once you have your certificate, the script will finish.
 5. At this point, your setup is complete. Please follow the Rust Server Metrics instructions to proceed. You should begin at **Step 6**: https://github.com/Pinkstink-Rust/Rust-Server-Metrics
 	- Note: Your database URL for Rust Server Metrics will be your InfluxDB subdomain - eg. `http(s)://influx.example.com`.
@@ -38,7 +37,7 @@ https://github.com/Pinkstink-Rust/Rust-Server-Metrics
 - This will create a 12-week Retention Policy, along with a 24-hour Shard Group Duration as per the Rust Server Metrics recommendations.
 
 **What happens when my SSL certificate expires?**
-- This script auto-creates a cronjob to attempt certificate renewal every day at 23:00, and restart Nginx if successful.
+- This script auto-creates a cronjob to attempt certificate renewal every day at 23:00, and restart Nginx..
 
 **How do I uninstall all of this?**
 - You can run the uninstaller script by executing this command **IN THE SAME LOCATION YOU RAN THE INSTALLER**: `bash <(curl -s https://raw.githubusercontent.com/lilciv/Nginx-Grafana-InfluxDB-Script/main/nginx-grafana-influx-uninstall.sh)`
