@@ -41,4 +41,4 @@ https://github.com/Pinkstink-Rust/Rust-Server-Metrics
 - This script auto-creates a cronjob to attempt certificate renewal every day at 23:00, and restart Nginx if successful.
 
 **How do I uninstall all of this?**
-- You can run the uninstaller script by executing this command: `bash <(curl -s https://raw.githubusercontent.com/lilciv/Nginx-Grafana-InfluxDB-Script/main/nginx-grafana-influx-uninstall.sh)`
+- You can run the uninstaller script by executing this command **IN THE SAME LOCATION YOU RAN THE INSTALLER**: `bash <(curl -s https://raw.githubusercontent.com/lilciv/Nginx-Grafana-InfluxDB-Script/main/nginx-grafana-influx-uninstall.sh)`
