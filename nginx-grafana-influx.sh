@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Nginx, Grafana, and InfluxDB Installer Script (v.2.0.1) by lilciv#2944
+# Nginx, Grafana, and InfluxDB Installer Script (v.2.0.2) by lilciv#2944
 # Built using Docker and Docker Compose.
 
 #Root user check
@@ -327,7 +327,7 @@ EOF
 
 #Deploy InfluxDB
 InfluxDB() {
-    docker run -d --network web --name InfluxDB --restart unless-stopped -v "$(pwd)"/Docker/Volumes/InfluxDB/etc/ssl:/etc/ssl -v "$(pwd)"/Docker/Volumes/InfluxDB/influxdb:/var/lib/influxdb -e INFLUXDB_DB=db01 -e INFLUXDB_HTTP_AUTH_ENABLED=true -e INFLUXDB_USER=$dbuser -e INFLUXDB_USER_PASSWORD=$dbpass -e INFLUXDB_ADMIN_USER=influxadmin -e INFLUXDB_ADMIN_PASSWORD=$dbadminpass -e INFLUXDB_HTTP_HTTPS_ENABLED=true -e INFLUXDB_HTTP_HTTPS_CERTIFICATE="/etc/ssl/fullchain.pem" -e INFLUXDB_HTTP_HTTPS_PRIVATE_KEY="/etc/ssl/privkey.pem" -e INFLUXDB_DATA_MAX_VALUES_PER_TAG=0 -e INFLUXDB_DATA_MAX_SERIES_PER_DATABASE=0 influxdb:1.8
+    docker run -d --network web --name InfluxDB --log-opt max-size=50m --restart unless-stopped -v "$(pwd)"/Docker/Volumes/InfluxDB/etc/ssl:/etc/ssl -v "$(pwd)"/Docker/Volumes/InfluxDB/influxdb:/var/lib/influxdb -e INFLUXDB_DB=db01 -e INFLUXDB_HTTP_AUTH_ENABLED=true -e INFLUXDB_USER=$dbuser -e INFLUXDB_USER_PASSWORD=$dbpass -e INFLUXDB_ADMIN_USER=influxadmin -e INFLUXDB_ADMIN_PASSWORD=$dbadminpass -e INFLUXDB_HTTP_HTTPS_ENABLED=true -e INFLUXDB_HTTP_HTTPS_CERTIFICATE="/etc/ssl/fullchain.pem" -e INFLUXDB_HTTP_HTTPS_PRIVATE_KEY="/etc/ssl/privkey.pem" -e INFLUXDB_DATA_MAX_VALUES_PER_TAG=0 -e INFLUXDB_DATA_MAX_SERIES_PER_DATABASE=0 influxdb:1.8
     Grafana
 }
 
