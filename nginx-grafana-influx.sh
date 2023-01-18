@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Nginx, Grafana, and InfluxDB Installer Script (v.2.0.2) by lilciv#2944
+# Nginx, Grafana, and InfluxDB Installer Script (v.2.0.3) by lilciv#2944
 # Built using Docker and Docker Compose.
 
 #Root user check
@@ -68,7 +68,6 @@ SSL() {
       neilpang/acme.sh daemon
     docker exec acme.sh --set-default-ca --server letsencrypt
     docker exec acme.sh --issue -d $grafanadomain -d $influxdomain --standalone
-    sudo crontab -l | { cat; echo "23 0 * * * docker restart Nginx"; } | sudo crontab -
     echo
     echo
     read -n1 -p "Did your certificate obtain correctly? [y,n]" correct
@@ -81,6 +80,13 @@ SSL() {
 
 #Build Nginx
 NginxBuild() {
+    cat > certrenew.sh << EOF
+#!/bin/bash
+    docker stop Nginx
+    docker exec acme.sh --renew -d $grafanadomain -d $influxdomain
+    docker start Nginx
+EOF
+    chmod +x certrenew.sh
     mkdir -p Docker/Volumes/Nginx/etc/nginx/conf.d
     mkdir -p Docker/Volumes/Nginx/etc/nginx/includes
     mkdir -p Docker/Volumes/Nginx/var/www/html
@@ -354,6 +360,10 @@ Finish() {
     echo Installation complete!
     echo
     echo Your InfluxDB database name is db01
+    echo
+    echo
+    echo IF YOU CHOSE TO USE SSL, in 60 days, please run ./certrenew.sh to renew your SSL certificate! 
+    echo If you fail to do this, you will receive certificate errors when it expires.
     echo
     echo Your Grafana dashboard is located at http://$grafanadomain
     echo Your InfluxDB instance is located at http://$influxdomain
