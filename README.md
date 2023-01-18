@@ -37,7 +37,7 @@ https://github.com/Pinkstink-Rust/Rust-Server-Metrics
 - This will create a 12-week Retention Policy, along with a 24-hour Shard Group Duration as per the Rust Server Metrics recommendations.
 
 **What happens when my SSL certificate expires?**
-- You will need to run the `certrenew.sh` file that is created every 2-3 months. If you fail to do so, your certificate will lapse and you will receive errors.
+- You will need to run the `./certrenew.sh` script every two to three months, as Let's Encrypt certificates only last 3 months. If you fail to do so, your certificate will lapse and you will receive errors. This file is located in the same location you ran the installer script from.
 
 **How do I uninstall all of this?**
 - You can run the uninstaller script by executing this command **IN THE SAME LOCATION YOU RAN THE INSTALLER**: `bash <(curl -s https://raw.githubusercontent.com/lilciv/Nginx-Grafana-InfluxDB-Script/main/nginx-grafana-influx-uninstall.sh)`
