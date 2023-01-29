@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Nginx, Grafana, and InfluxDB Installer Script (v.2.0.3) by lilciv#2944
+# Nginx, Grafana, and InfluxDB Installer Script (v.2.0.4) by lilciv#2944
 # Built using Docker and Docker Compose.
 
 #Root user check
@@ -107,8 +107,8 @@ server {
     listen 443 ssl http2;
     server_name $grafanadomain;
 
-    ssl_certificate /etc/acme.sh/$grafanadomain/fullchain.cer;
-    ssl_certificate_key /etc/acme.sh/$grafanadomain/$grafanadomain.key;
+    ssl_certificate /etc/acme.sh/${grafanadomain}_ecc/fullchain.cer;
+    ssl_certificate_key /etc/acme.sh/${grafanadomain}_ecc/$grafanadomain.key;
     include /etc/nginx/includes/ssl.conf;
 
     location / {
@@ -130,8 +130,8 @@ server {
     listen 443 ssl http2;
     server_name $influxdomain;
 
-    ssl_certificate /etc/acme.sh/$grafanadomain/fullchain.cer;
-    ssl_certificate_key /etc/acme.sh/$grafanadomain/$grafanadomain.key;
+    ssl_certificate /etc/acme.sh/${grafanadomain}_ecc/fullchain.cer;
+    ssl_certificate_key /etc/acme.sh/${grafanadomain}_ecc/$grafanadomain.key;
     include /etc/nginx/includes/ssl.conf;
     
 
@@ -167,8 +167,8 @@ server {
     listen 443 ssl http2 default_server;
     server_name _;
 	
-    ssl_certificate /etc/acme.sh/$grafanadomain/$grafanadomain.cer;
-    ssl_certificate_key /etc/acme.sh/$grafanadomain/$grafanadomain.key;
+    ssl_certificate /etc/acme.sh/${grafanadomain}_ecc/$grafanadomain.cer;
+    ssl_certificate_key /etc/acme.sh/${grafanadomain}_ecc/$grafanadomain.key;
 	
     root /var/www/html;
     
